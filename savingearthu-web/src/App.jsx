@@ -1,186 +1,474 @@
-import { useEffect, useState } from "react";
-import "./App.css";
+import { useState, useEffect } from "react";
 
-const API =
-  "https://script.google.com/macros/s/AKfycbyzE7WdVzzrdS7PhzyvponsP9wvtSxI9EroRozP12vVeCLtC1RPe_Rx1bKOORnxkzEy/exec";
+// ──────────────────────────────────────────────
+// ↓ Apps Script 배포 URL 여기에 붙여넣기
+const API_URL = "여기에_배포URL_붙여넣기";
+// ──────────────────────────────────────────────
 
-// 안전 숫자 처리
-const safe = (v) => (v === undefined || v === null || isNaN(v) ? 0 : Number(v));
+const LOGO_URL =
+  "https://impact.career/_storage_/public/2/r86hg3b8piirdieepxq9xgrq141y";
 
-// 숫자 포맷
-const fmt = (n) => {
+// URL 파라미터에서 cafeId 꺼내기
+function getCafeId() {
+  return new URLSearchParams(window.location.search).get("cafeId") || "";
+}
+
+function fmt(n) {
   const v = Number(n);
   if (isNaN(v)) return "0";
   if (v < 10) return v.toFixed(1);
   return Math.round(v).toLocaleString("ko-KR");
+}
+
+// ── 스타일 상수 ──────────────────────────────
+const S = {
+  // 전체 래퍼: 배경 이미지 + 다크 오버레이
+  page: {
+    minHeight: "100vh",
+    maxWidth: 480,
+    margin: "0 auto",
+    background: "#1c1c1c",
+    position: "relative",
+    fontFamily: "'Noto Sans KR', sans-serif",
+    color: "#fff",
+    overflowX: "hidden",
+  },
+  // 배경 이미지 레이어 (실사진 넣을 곳)
+  bgLayer: {
+    position: "fixed",
+    inset: 0,
+    maxWidth: 480,
+    margin: "0 auto",
+    backgroundImage: "url('여기에_배경사진_URL')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    // 배경사진 없을 때 fallback 그라디언트
+    background:
+      "linear-gradient(180deg, #2a3a2a 0%, #1a2a1a 40%, #151f1a 100%)",
+    filter: "brightness(0.45)",
+    zIndex: 0,
+  },
+  // 콘텐츠 레이어
+  content: {
+    position: "relative",
+    zIndex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    padding: "0 0 3rem",
+  },
+
+  // ── 히어로 섹션 ──
+  heroSection: {
+    width: "100%",
+    padding: "5rem 1.5rem 2rem",
+    textAlign: "center",
+  },
+  cafeName: {
+    fontSize: 42,
+    fontWeight: 900,
+    color: "#fff",
+    letterSpacing: -1.5,
+    lineHeight: 1.1,
+    marginBottom: "0.5rem",
+    textShadow: "0 2px 20px rgba(0,0,0,0.5)",
+  },
+  cafePeriod: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.75)",
+    fontWeight: 400,
+    letterSpacing: 0,
+  },
+
+  // ── 통계 섹션 ──
+  statsSection: {
+    width: "100%",
+    padding: "2.5rem 1.5rem 1.5rem",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: 0,
+  },
+  statItem: {
+    textAlign: "center",
+    padding: "0.5rem 0.25rem",
+  },
+  statLabel: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: "rgba(255,255,255,0.65)",
+    marginBottom: "0.5rem",
+    letterSpacing: 0.2,
+  },
+  statValue: {
+    fontSize: 32,
+    fontWeight: 900,
+    color: "#fff",
+    letterSpacing: -1.5,
+    lineHeight: 1,
+  },
+  statUnit: {
+    fontSize: 14,
+    fontWeight: 400,
+    color: "rgba(255,255,255,0.55)",
+    marginLeft: 2,
+  },
+
+  // ── 인용구 ──
+  quoteSection: {
+    width: "100%",
+    padding: "1rem 2rem",
+    textAlign: "center",
+  },
+  quoteText: {
+    fontSize: 14,
+    fontWeight: 500,
+    color: "rgba(255,255,255,0.8)",
+    lineHeight: 1.7,
+    letterSpacing: 0.2,
+  },
+
+  // ── 구분선 ──
+  divider: {
+    width: "calc(100% - 3rem)",
+    height: 1,
+    background: "rgba(255,255,255,0.15)",
+    margin: "0.5rem 1.5rem",
+  },
+
+  // ── 순환 구조 텍스트 ──
+  cycleSection: {
+    width: "100%",
+    padding: "1rem 1.5rem",
+    textAlign: "left",
+  },
+  cycleText: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.65)",
+    lineHeight: 1.8,
+    letterSpacing: 0.1,
+  },
+  cycleHighlight: {
+    color: "rgba(255,255,255,0.9)",
+    fontWeight: 500,
+  },
+
+  // ── 사람 카드 섹션 ──
+  peopleSection: {
+    width: "100%",
+    padding: "1.5rem 1.5rem 0.5rem",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "1.2rem",
+    textAlign: "left",
+  },
+  personAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(4px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 32,
+    marginBottom: "0.6rem",
+    overflow: "hidden",
+    flexShrink: 0,
+  },
+  personAvatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  personDesc: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.6)",
+    lineHeight: 1.55,
+    marginBottom: "0.5rem",
+  },
+  personLink: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: "#fff",
+    textDecoration: "underline",
+    textUnderlineOffset: 3,
+    cursor: "pointer",
+  },
+
+  // ── 지도 버튼 ──
+  mapBtnWrap: {
+    width: "100%",
+    padding: "1.5rem 1.5rem 0.5rem",
+  },
+  mapBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    width: "100%",
+    padding: "1rem 1.5rem",
+    background: "#00aeef",
+    borderRadius: 50,
+    textDecoration: "none",
+    fontSize: 15,
+    fontWeight: 700,
+    color: "#fff",
+    letterSpacing: -0.2,
+    boxShadow: "0 4px 24px rgba(0,174,239,0.35)",
+    cursor: "pointer",
+  },
+
+  // ── 로고 + 푸터 ──
+  footerSection: {
+    width: "100%",
+    padding: "2.5rem 1.5rem 2rem",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "1rem",
+  },
+  footerLogo: {
+    width: 130,
+    objectFit: "contain",
+    filter: "brightness(0) invert(1)",
+    opacity: 0.85,
+  },
+  footerLinks: {
+    display: "flex",
+    gap: 16,
+  },
+  footerLink: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.5)",
+    textDecoration: "none",
+  },
 };
 
-export default function App() {
+// ── 로딩 화면 ─────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg,#2a3a2a,#151f1a)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 16,
+        fontFamily: "'Noto Sans KR',sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", gap: 6 }}>
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            style={{
+              display: "inline-block",
+              width: 9,
+              height: 9,
+              borderRadius: "50%",
+              background: i === 1 ? "rgba(255,255,255,0.4)" : "#00a54f",
+              animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>잠깐만요…</p>
+      <style>{`@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}`}</style>
+    </div>
+  );
+}
+
+// ── 에러 화면 ─────────────────────────────────
+function ErrorScreen({ detail }) {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg,#2a3a2a,#151f1a)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        fontFamily: "'Noto Sans KR',sans-serif",
+        textAlign: "center",
+        padding: "2rem",
+      }}
+    >
+      <p style={{ fontSize: 36, marginBottom: 4 }}>🌱</p>
+      <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)" }}>
+        카페 정보를 찾을 수 없어요.
+      </p>
+      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>{detail}</p>
+    </div>
+  );
+}
+
+// ── 메인 컴포넌트 ─────────────────────────────
+export default function CafePage() {
+  const [status, setStatus] = useState("loading"); // loading | ok | error
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [errMsg, setErrMsg] = useState("");
 
   useEffect(() => {
-    const load = async () => {
-      const cafeId = new URLSearchParams(window.location.search).get("cafeId");
-
-      // 1️⃣ ID 검증
-      if (!cafeId || !cafeId.startsWith("cafe_")) {
-        setError("잘못된 QR입니다.");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // 2️⃣ 타임아웃 설정
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 7000);
-
-        const res = await fetch(
-          `${API}?cafeId=${encodeURIComponent(cafeId)}`,
-          { signal: controller.signal }
-        );
-
-        clearTimeout(timeout);
-
-        const json = await res.json();
-
-        if (!json || !json.cafe) {
-          setError("등록된 카페 데이터를 찾을 수 없습니다.");
-          setLoading(false);
-          return;
+    const cafeId = getCafeId();
+    if (!cafeId) {
+      setErrMsg("URL에 cafeId가 없어요.");
+      setStatus("error");
+      return;
+    }
+    fetch(`${API_URL}?cafeId=${encodeURIComponent(cafeId)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.cafe) {
+          setErrMsg(`등록된 카페를 찾지 못했어요. (${cafeId})`);
+          setStatus("error");
+        } else {
+          setData(d);
+          setStatus("ok");
         }
-
-        // 3️⃣ 데이터 저장
-        setData(json);
-      } catch (e) {
-        setError("데이터를 불러오지 못했습니다. 네트워크를 확인해주세요.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
+      })
+      .catch((e) => {
+        setErrMsg(e.message);
+        setStatus("error");
+      });
   }, []);
 
-  if (loading) {
-    return (
-      <div className="loading">
-        <div>
-          <span className="ld"></span>
-          <span className="ld"></span>
-          <span className="ld"></span>
-        </div>
-        <p>잠깐만요…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div id="err">
-        <p style={{ fontSize: "32px", marginBottom: "10px" }}>🌱</p>
-        <p style={{ color: "rgba(255,255,255,.6)" }}>{error}</p>
-      </div>
-    );
-  }
+  if (status === "loading") return <LoadingScreen />;
+  if (status === "error") return <ErrorScreen detail={errMsg} />;
 
   return (
-    <div id="main">
-      {/* 히어로 */}
-      <section className="hero">
-        <p className="hero-tag">참여 카페</p>
-        <h1 className="hero-name">{data.cafe}</h1>
-        <div className="hero-period">
-          <em>2025</em>년부터 함께하는 지구카페
-        </div>
-      </section>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
+        rel="stylesheet"
+      />
+      <div style={S.page}>
+        {/* 배경 레이어 */}
+        <div style={S.bgLayer} />
 
-      {/* 스탯 */}
-      <div className="stats">
-        <div className="stats-grid">
-          <div className="stat green">
-            <p className="stat-label">종이팩량</p>
-            <p className="stat-val">
-              {fmt(safe(data.count))} <span className="stat-unit">개</span>
-            </p>
+        {/* 콘텐츠 */}
+        <div style={S.content}>
+
+          {/* ① 히어로: 카페 이름 + 참여기간 */}
+          <section style={S.heroSection}>
+            <h1 style={S.cafeName}>{data.cafe}</h1>
+            <p style={S.cafePeriod}>2025년부터 함께하는 지구카페</p>
+          </section>
+
+          {/* ② 통계 3칸 */}
+          <div style={S.statsSection}>
+            {[
+              { label: "종이팩량", value: fmt(data.count), unit: "개" },
+              { label: "살린 나무", value: fmt(data.trees), unit: "그루" },
+              { label: "재생 휴지", value: fmt(data.tissue), unit: "개" },
+            ].map((s, i) => (
+              <div key={i} style={S.statItem}>
+                <p style={S.statLabel}>{s.label}</p>
+                <p style={S.statValue}>
+                  {s.value}
+                  <span style={S.statUnit}>{s.unit}</span>
+                </p>
+              </div>
+            ))}
           </div>
 
-          <div className="stat">
-            <p className="stat-label">살린 나무</p>
-            <p className="stat-val">
-              {fmt(safe(data.trees))} <span className="stat-unit">그루</span>
+          <div style={S.divider} />
+
+          {/* ③ 인용구 */}
+          <section style={S.quoteSection}>
+            <p style={S.quoteText}>
+              "{data.cafe}은 자원순환이 시작되는 곳입니다"
             </p>
+          </section>
+
+          <div style={S.divider} />
+
+          {/* ④ 순환 구조 */}
+          <section style={S.cycleSection}>
+            <p style={S.cycleText}>
+              <span style={S.cycleHighlight}>카페</span>
+              {" → "}
+              <span style={S.cycleHighlight}>지소행(수거)</span>
+              {" → "}
+              <span style={S.cycleHighlight}>제지회사</span>
+              {" → "}
+              <span style={S.cycleHighlight}>재생 종이(휴지)</span>
+              {" → "}
+              <span style={S.cycleHighlight}>기후 취약계층 전달</span>
+            </p>
+          </section>
+
+          <div style={S.divider} />
+
+          {/* ⑤ 사람 카드 2개 */}
+          <section style={S.peopleSection}>
+            {/* 황무연 선생님 */}
+            <div>
+              <div style={S.personAvatar}>
+                {/* 사진 있으면: <img src="URL" style={S.personAvatarImg} alt="황무연" /> */}
+                👴
+              </div>
+              <p style={S.personDesc}>
+                "충무로 카페의 종이팩을 매일 수거하고 계시는 어르신 활동가"
+              </p>
+              {/* ↓ 인터뷰 링크 href에 넣기 */}
+              <a style={S.personLink} href="여기에_인터뷰_URL" target="_blank" rel="noreferrer">
+                지구인-터뷰 보러가기
+              </a>
+            </div>
+
+            {/* 오늘은 지구인 */}
+            <div>
+              <div style={S.personAvatar}>
+                {/* 사진: <img src="URL" style={S.personAvatarImg} alt="오늘은 지구인" /> */}
+                🌍
+              </div>
+              <p style={S.personDesc}>오늘은 지구인(사진)<br />설명 멘트</p>
+              {/* ↓ 봉사단 링크 */}
+              <a style={S.personLink} href="여기에_봉사단_URL" target="_blank" rel="noreferrer">
+                활동 보러가기
+              </a>
+            </div>
+          </section>
+
+          {/* ⑥ 지도 버튼 */}
+          <div style={S.mapBtnWrap}>
+            {/* ↓ 지도 URL */}
+            <a style={S.mapBtn} href="여기에_지도_URL" target="_blank" rel="noreferrer">
+              다른 지구 카페 확인하기 →
+            </a>
           </div>
 
-          <div className="stat blue">
-            <p className="stat-label">재생 휴지</p>
-            <p className="stat-val">
-              {fmt(safe(data.tissue))} <span className="stat-unit">개</span>
-            </p>
-          </div>
+          {/* ⑦ 로고 + 링크 */}
+          <section style={S.footerSection}>
+            <img src={LOGO_URL} alt="지소행 로고" style={S.footerLogo} />
+            <div style={S.footerLinks}>
+              <a
+                style={S.footerLink}
+                href="https://www.instagram.com/savingearthu/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                인스타그램
+              </a>
+              <a
+                style={S.footerLink}
+                href="https://savingearthu.org"
+                target="_blank"
+                rel="noreferrer"
+              >
+                홈페이지
+              </a>
+            </div>
+          </section>
+
         </div>
       </div>
-
-      {/* 인용구 */}
-      <div className="section">
-        <div className="quote">
-          <p>
-            <em>{data.cafe}</em>는
-            <br />
-            자원순환이 시작되는 곳입니다
-          </p>
-        </div>
-      </div>
-
-      {/* 순환 구조 */}
-      <div className="section">
-        <p className="section-label">순환 구조</p>
-        <div className="cycle-flow">
-          <div className="cycle-node">
-            <div className="cycle-icon" style={{ background: "#edf7f2" }}>
-              ☕
-            </div>
-            <p className="cycle-node-label">카페<br />종이팩</p>
-          </div>
-
-          <span className="cycle-arr">→</span>
-
-          <div className="cycle-node">
-            <div className="cycle-icon" style={{ background: "#eaf7fd" }}>
-              🌿
-            </div>
-            <p className="cycle-node-label">지소행<br />수거</p>
-          </div>
-
-          <span className="cycle-arr">→</span>
-
-          <div className="cycle-node">
-            <div className="cycle-icon" style={{ background: "#f2f2f2" }}>
-              🏭
-            </div>
-            <p className="cycle-node-label">제지<br />회사</p>
-          </div>
-
-          <span className="cycle-arr">→</span>
-
-          <div className="cycle-node">
-            <div className="cycle-icon" style={{ background: "#edf7f2" }}>
-              🧻
-            </div>
-            <p className="cycle-node-label">재생<br />종이</p>
-          </div>
-
-          <span className="cycle-arr">→</span>
-
-          <div className="cycle-node">
-            <div className="cycle-icon" style={{ background: "#fff8ee" }}>
-              🤝
-            </div>
-            <p className="cycle-node-label">기후<br />취약계층</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
