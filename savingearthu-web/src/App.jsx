@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 const API_URL = "https://script.google.com/macros/s/AKfycbyzE7WdVzzrdS7PhzyvponsP9wvtSxI9EroRozP12vVeCLtC1RPe_Rx1bKOORnxkzEy/exec";
 const LOGO_URL = "https://impact.career/_storage_/public/2/r86hg3b8piirdieepxq9xgrq141y";
 const BG_IMAGE = "/bg.jpg"; // public 폴더에 넣은 사진 파일명
-const INTERVIEW_URL = "https://savingearthu.org/n1/?q=YToxOntzOjEyOiJrZXl3b3JkX3R5cGUiO3M6MzoiYWxsIjt9&bmode=view&idx=170908572&t=board";
-const NEWSLETTER_URL = "https://stibee.com/api/v1.0/emails/share/5VZxW3ytjo2n2O7uTRp-sVi4Uh9A-p0";
+const INTERVIEW_URL = "https://stibee.com/api/v1.0/emails/share/5VZxW3ytjo2n2O7uTRp-sVi4Uh9A-p0";
+const NEWSLETTER_URL = "https://savingearthu.org/n1/?q=YToxOntzOjEyOiJrZXl3b3JkX3R5cGUiO3M6MzoiYWxsIjt9&bmode=view&idx=170908574&t=board";
 const HOME_URL = "https://savingearthu.org/";
 const INSTA_URL = "https://www.instagram.com/savingearthu/";
+const MAP_URL = "https://naver.me/GlR9fVER";
 // ─────────────────────────────────────────────
 
 function getCafeId() {
@@ -222,7 +223,7 @@ export default function App() {
 
           {/* ⑥ 지도 버튼 */}
           <div style={{ width: "100%", padding: "1.5rem 1.5rem 0.5rem" }}>
-            <a href={HOME_URL} target="_blank" rel="noreferrer" style={{
+            <a href={MAP_URL} target="_blank" rel="noreferrer" style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               width: "100%", padding: "1rem 1.5rem",
               background: "#00aeef", borderRadius: 50,
