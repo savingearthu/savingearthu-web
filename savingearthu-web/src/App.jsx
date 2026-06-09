@@ -259,3 +259,6 @@ export default function CafePage() {
     </>
   );
 }
+export default function App() {
+  return <CafePage />;
+}
