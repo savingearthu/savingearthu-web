@@ -62,7 +62,7 @@ function ErrorScreen({ detail }) {
   );
 }
 
-export default function CafePage() {
+export default function App() {
   const [status, setStatus] = useState("loading");
   const [data, setData] = useState(null);
   const [errMsg, setErrMsg] = useState("");
@@ -258,7 +258,4 @@ export default function CafePage() {
       </div>
     </>
   );
-}
-export default function App() {
-  return <CafePage />;
 }
