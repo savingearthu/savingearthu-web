@@ -5,7 +5,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyzE7WdVzzrdS7Phzyvpons
 const LOGO_URL = "https://cdn.imweb.me/upload/S20230420b05ab2cbf2d03/17b01aa6bd13a.png";
 const BG_IMAGE = "/bg.jpg";
 const INTERVIEW_URL = "https://stibee.com/api/v1.0/emails/share/5VZxW3ytjo2n2O7uTRp-sVi4Uh9A-p0";
-const RECYCLE_URL  = "https://savingearthu.org/n1/?q=YToxOntzOjEyOiJrZXl3b3JkX3R5cGUiO3M6MzoiYWxsIjt9&bmode=view&idx=170908574&t=boardhttps://savingearthu.org/actions/?q=YToxOntzOjEyOiJrZXl3b3JkX3R5cGUiO3M6MzoiYWxsIjt9&bmode=view&idx=170908572&t=board"; // 종이팩 다시쓰기 링크 (필요시 수정)
+const RECYCLE_URL  = "https://savingearthu.org/actions/?q=YToxOntzOjEyOiJrZXl3b3JkX3R5cGUiO3M6MzoiYWxsIjt9&bmode=view&idx=170908572&t=board";
 const HOME_URL  = "https://savingearthu.org/";
 const INSTA_URL = "https://www.instagram.com/savingearthu/";
 const MAP_URL   = "https://naver.me/GlR9fVER";
